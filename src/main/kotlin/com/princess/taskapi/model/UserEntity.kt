@@ -24,5 +24,5 @@ class UserEntity(
     var password: String = "",
 
     @CreatedDate
-    var createdAt: LocalDateTime? = null
+    var createdDate: LocalDateTime? = null
 )
