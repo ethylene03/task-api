@@ -23,6 +23,13 @@ class UserController(private val service: UserService) {
         return service.create(details).also { log.info("User created.") }
     }
 
+    @GetMapping
+    fun findAll(): List<UserDTO> {
+        log.info("Running GET /users method.")
+
+        return service.findAll().also { log.info("Users fetched.") }
+    }
+
     @GetMapping("/{id}")
     fun find(@PathVariable("id") id: UUID): UserDTO {
         log.info("Running GET /users/{id} method.")

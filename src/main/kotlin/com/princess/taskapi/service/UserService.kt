@@ -26,6 +26,10 @@ class UserService(private val repository: UserRepository, private val passwordMa
             .toUserResponse()
     }
 
+    fun findAll(): List<UserDTO> {
+        return repository.findAll().map { it.toUserResponse() }
+    }
+
     fun find(id: UUID): UserDTO {
         return repository.findById(id)
             .orElseThrow {

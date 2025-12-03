@@ -10,7 +10,7 @@ import com.princess.taskapi.model.TaskEntity
 import com.princess.taskapi.model.UserEntity
 
 fun UserEntity.toUserResponse(): UserDTO = UserDTO(
-    id = this.id,
+    id = this.id ?: throw IllegalArgumentException("User ID is required."),
     name = this.name,
     username = this.username
 )
