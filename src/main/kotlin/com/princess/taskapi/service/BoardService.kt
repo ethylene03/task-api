@@ -26,19 +26,9 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         return details.createBoardEntity(user).let { boardRepository.save(it) }.toBoardResponse()
     }
 
-    fun findAll(userId: UUID, query: String): List<BoardDTO> {
-        log.debug("Fetching all owned boards..")
-        val ownedBoards = boardRepository.findAllByOwnerId(userId).map { it.toBoardResponse() }
-
-        log.debug("Fetching all member boards..")
-        val memberBoards = boardRepository.findAllByMembersId(userId).map { it.toBoardResponse() }
-
-        log.debug("Collating boards..")
-        return when (query) {
-            "owner" -> ownedBoards
-            "member" -> memberBoards
-            else -> ownedBoards + memberBoards
-        }
+    fun findAll(userId: UUID): List<BoardDTO> {
+        log.debug("Fetching all boards..")
+        return boardRepository.findAllByMembersId(userId).map { it.toBoardResponse() }
     }
 
     fun find(boardId: UUID): BoardDTO {

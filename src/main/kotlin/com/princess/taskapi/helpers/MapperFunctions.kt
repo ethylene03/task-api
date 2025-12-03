@@ -62,10 +62,10 @@ fun BoardEntity.toBoardResponse(): BoardDTO = BoardDTO(
     members = this.members.map { it.toUserResponse() }.toMutableList()
 )
 
-fun BoardDTO.createBoardEntity(user: UserEntity): BoardEntity = BoardEntity(
+fun BoardDTO.createBoardEntity(user: UserEntity, members: List<UserEntity>): BoardEntity = BoardEntity(
     owner = user,
     name = this.name,
     description = this.description,
     tasks = mutableListOf(),
-    members = mutableListOf()
+    members = members.toMutableList().apply { add(user) }
 )

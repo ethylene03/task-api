@@ -26,10 +26,10 @@ class BoardController(private val service: BoardService) {
     }
 
     @GetMapping
-    fun findAll(@RequestParam query: String, @AuthenticationPrincipal userId: UUID): List<BoardDTO> {
+    fun findAll(@AuthenticationPrincipal userId: UUID): List<BoardDTO> {
         log.info("Running GET /boards method.")
 
-        return service.findAll(userId, query)
+        return service.findAll(userId)
             .also { log.info("All boards fetched.") }
     }
 
