@@ -27,7 +27,7 @@ fun CommentEntity.toCommentResponse(): CommentDTO = CommentDTO(
     id = this.id,
     user = this.user?.toUserResponse() ?: throw ResourceNotFoundException("No user is passed."),
     comment = this.comment,
-    task = this.task?.toTaskResponse()
+    task = this.task?.id
 )
 
 fun CommentDTO.createCommentEntity(user: UserEntity, task: TaskEntity): CommentEntity = CommentEntity(

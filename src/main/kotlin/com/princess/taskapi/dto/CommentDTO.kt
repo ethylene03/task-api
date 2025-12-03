@@ -6,5 +6,5 @@ data class CommentDTO(
     val id: UUID? = null,
     val user: UserDTO? = null,
     val comment: String,
-    val task: TaskDTO? = null
+    val task: UUID? = null
 )

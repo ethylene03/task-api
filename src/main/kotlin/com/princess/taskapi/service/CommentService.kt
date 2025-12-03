@@ -27,7 +27,7 @@ class CommentService(
         }
 
         log.debug("Fetching task..")
-        val task = details.task?.id?.let {
+        val task = details.task?.let {
             taskRepository.findById(it).orElseThrow {
                 log.error("Task does not exist.")
                 ResourceNotFoundException("Task does not exist.")
