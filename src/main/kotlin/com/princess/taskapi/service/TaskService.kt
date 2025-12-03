@@ -9,10 +9,14 @@ import com.princess.taskapi.repository.TaskRepository
 import com.princess.taskapi.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
 
 @Service
-class TaskService(private val taskRepository: TaskRepository, private val userRepository: UserRepository, private val boardRepository: BoardRepository) {
+class TaskService(
+    private val taskRepository: TaskRepository,
+    private val userRepository: UserRepository,
+    private val boardRepository: BoardRepository
+) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun create(details: TaskDTO, userId: UUID): TaskDTO {
@@ -23,7 +27,7 @@ class TaskService(private val taskRepository: TaskRepository, private val userRe
         }
 
         log.debug("Fetching board details..")
-        val board = details.board?.id?.let {
+        val board = details.board?.let {
             boardRepository.findById(it).orElseThrow {
                 log.error("Board does not exist.")
                 ResourceNotFoundException("Board does not exist.")

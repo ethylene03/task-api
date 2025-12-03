@@ -8,5 +8,5 @@ data class TaskDTO(
     val description: String? = null,
     val assignee: UserDTO? = null,
     val comments: MutableList<CommentDTO> = mutableListOf(),
-    val board: BoardDTO? = null
+    val board: UUID? = null
 )

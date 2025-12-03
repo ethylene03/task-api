@@ -1,5 +1,6 @@
 package com.princess.taskapi.controller
 
+import com.princess.taskapi.dto.AssigneeIdDTO
 import com.princess.taskapi.dto.TaskDTO
 import com.princess.taskapi.service.TaskService
 import org.slf4j.LoggerFactory
@@ -42,18 +43,6 @@ class TaskController(private val service: TaskService) {
 
         return service.update(taskId, details, userId)
             .also { log.info("Task updated.") }
-    }
-
-    @PutMapping("/{id}/assignee")
-    fun assign(
-        @PathVariable("id") taskId: UUID,
-        @RequestBody assigneeId: UUID,
-        @AuthenticationPrincipal userId: UUID
-    ): TaskDTO {
-        log.info("Running PUT /tasks/{id}/assignee method.")
-
-        return service.assign(taskId, assigneeId, userId)
-            .also { log.info("Task assigned.") }
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

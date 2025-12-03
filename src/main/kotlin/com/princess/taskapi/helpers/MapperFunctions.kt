@@ -42,7 +42,7 @@ fun TaskEntity.toTaskResponse(): TaskDTO = TaskDTO(
     description = this.description,
     assignee = this.assignee?.toUserResponse(),
     comments = this.comments.map { it.toCommentResponse() }.toMutableList(),
-    board = this.board?.toBoardResponse()
+    board = this.board?.id
 )
 
 fun TaskDTO.createTaskEntity(assignee: UserEntity? = null, board: BoardEntity): TaskEntity = TaskEntity(
