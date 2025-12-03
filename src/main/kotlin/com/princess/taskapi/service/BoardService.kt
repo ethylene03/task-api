@@ -83,17 +83,22 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }
 
         log.debug("Checking if user is owner..")
-        takeIf { board.owner?.id != owner.id }?.run {
+        if (board.owner?.id != owner.id) {
             log.error("User is not authorized to update this board.")
-            IllegalArgumentException("User is not authorized to update this board.")
+            throw IllegalArgumentException("User is not authorized to update this board.")
         }
 
         log.debug("Fetching member details..")
-        val members = invitedMembers.map { userRepository.findById(it.id!!) }.toMutableList()
+        val members = invitedMembers.map {
+            userRepository.findById(it.id!!).orElseThrow {
+                log.error("One or more members do not exist.")
+                ResourceNotFoundException("One or more members do not exist.")
+            }
+        }.toMutableList()
 
         log.debug("Saving members..")
         return board.apply {
-            members.addAll(members)
+            this.members.addAll(members)
         }.let { boardRepository.save(it) }.toBoardResponse()
     }
 
