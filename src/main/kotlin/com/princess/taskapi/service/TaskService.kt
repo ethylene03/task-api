@@ -106,6 +106,7 @@ class TaskService(
 
         log.debug("Updating task..")
         return task.apply {
+            status = details.status
             name = details.name
             description = details.description
             this.assignee = assignee ?: this.assignee

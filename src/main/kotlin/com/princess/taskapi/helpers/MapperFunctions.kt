@@ -38,6 +38,7 @@ fun CommentDTO.createCommentEntity(user: UserEntity, task: TaskEntity): CommentE
 
 fun TaskEntity.toTaskResponse(): TaskDTO = TaskDTO(
     id = this.id,
+    status = this.status,
     name = this.name,
     description = this.description,
     assignee = this.assignee?.toUserResponse(),
@@ -46,6 +47,7 @@ fun TaskEntity.toTaskResponse(): TaskDTO = TaskDTO(
 )
 
 fun TaskDTO.createTaskEntity(assignee: UserEntity? = null, board: BoardEntity): TaskEntity = TaskEntity(
+    status = this.status,
     name = this.name,
     description = this.description,
     assignee = assignee,

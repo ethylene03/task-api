@@ -4,6 +4,7 @@ import java.util.UUID
 
 data class TaskDTO(
     val id: UUID? = null,
+    val status: String = "To-Do",
     val name: String,
     val description: String? = null,
     val assignee: UserDTO? = null,

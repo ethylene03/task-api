@@ -28,6 +28,9 @@ class TaskEntity(
     @GeneratedValue(strategy = GenerationType.UUID)
     var id: UUID? = null,
 
+    @Column(nullable = false, columnDefinition = "varchar(255) default 'To-Do'")
+    var status: String = "", // To-Do, Ongoing, Done
+
     @Column(nullable = false)
     var name: String = "",
 
