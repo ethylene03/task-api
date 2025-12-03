@@ -23,7 +23,9 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }
 
         log.debug("Fetching member details..")
-        val members = details.members.map { userRepository.findById(it.id!!).orElseThrow { ResourceNotFoundException("One member does not exist.") } }
+        val members = details.members.map {
+            userRepository.findById(it.id!!).orElseThrow { ResourceNotFoundException("One member does not exist.") }
+        }
 
         log.debug("Saving board..")
         return details.createBoardEntity(user, members)
@@ -57,9 +59,9 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }
 
         log.debug("Checking if user is owner..")
-        takeIf { board.owner?.id != user.id }?.run {
+        if (board.owner?.id != user.id) {
             log.error("User is not authorized to update this board.")
-            IllegalArgumentException("User is not authorized to update this board.")
+            throw IllegalArgumentException("User is not authorized to update this board.")
         }
 
         log.debug("Saving board..")
@@ -110,9 +112,9 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }
 
         log.debug("Checking if user is owner..")
-        takeIf { board.owner?.id != userId }?.run {
+        if (board.owner?.id != userId) {
             log.error("User is not authorized to update this board.")
-            IllegalArgumentException("User is not authorized to update this board.")
+            throw IllegalArgumentException("User is not authorized to update this board.")
         }
 
         log.debug("Deleting board..")
