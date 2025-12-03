@@ -43,10 +43,27 @@ class TaskService(
             IllegalArgumentException("User is not authorized to add tasks.")
         }
 
+        log.debug("Fetching assignee details..")
+        val assignee = details.assignee?.id?.let {
+            userRepository.findById(it).orElseThrow {
+                log.error("Assignee does not exist.")
+                ResourceNotFoundException("Assignee does not exist.")
+            }
+        } ?: run {
+            log.warn("No assignee passed.")
+            null
+        }
+
         log.debug("Saving task..")
-        return details.createTaskEntity(board = board)
+        return details.createTaskEntity(assignee, board)
             .let { taskRepository.save(it) }
             .toTaskResponse()
+    }
+
+    fun findAll(userId: UUID): List<TaskDTO> {
+        log.debug("Fetching all owned tasks..")
+        return taskRepository.findAllByAssigneeId(userId)
+            .map { it.toTaskResponse() }
     }
 
     fun find(taskId: UUID): TaskDTO {
@@ -76,41 +93,22 @@ class TaskService(
             IllegalArgumentException("User is not authorized to add tasks.")
         }
 
-        log.debug("Saving task..")
+        log.debug("Fetching assignee details..")
+        val assignee = details.assignee?.id?.let {
+            userRepository.findById(it).orElseThrow {
+                log.error("Assignee does not exist.")
+                ResourceNotFoundException("Assignee does not exist.")
+            }
+        } ?: run {
+            log.warn("No assignee passed.")
+            null
+        }
+
+        log.debug("Updating task..")
         return task.apply {
             name = details.name
             description = details.description
-        }.let { taskRepository.save(it) }.toTaskResponse()
-    }
-
-    fun assign(taskId: UUID, assigneeId: UUID, userId: UUID): TaskDTO {
-        log.debug("Fetching user details..")
-        val user = userRepository.findById(userId).orElseThrow {
-            log.error("User does not exist.")
-            ResourceNotFoundException("User does not exist.")
-        }
-
-        log.debug("Finding task..")
-        val task = taskRepository.findById(taskId).orElseThrow {
-            log.error("Task does not exist.")
-            ResourceNotFoundException("Task does not exist.")
-        }
-
-        log.debug("Checking if user is a member of the board..")
-        takeUnless { task.board?.members?.any { it.id == user.id } ?: false }?.let {
-            log.error("User is not authorized to add tasks.")
-            IllegalArgumentException("User is not authorized to add tasks.")
-        }
-
-        log.debug("Fetching assignee details..")
-        val assignee = userRepository.findById(assigneeId).orElseThrow {
-            log.error("Assignee does not exist.")
-            ResourceNotFoundException("Assignee does not exist.")
-        }
-
-        log.debug("Assigning task..")
-        return task.apply {
-            this.assignee = assignee
+            this.assignee = assignee ?: this.assignee
         }.let { taskRepository.save(it) }.toTaskResponse()
     }
 

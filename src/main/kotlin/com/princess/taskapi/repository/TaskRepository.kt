@@ -7,4 +7,5 @@ import java.util.UUID
 
 @Repository
 interface TaskRepository : JpaRepository<TaskEntity, UUID> {
+    fun findAllByAssigneeId(assigneeId: UUID): List<TaskEntity>
 }

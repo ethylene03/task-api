@@ -25,6 +25,14 @@ class TaskController(private val service: TaskService) {
             .also { log.info("Task created.") }
     }
 
+    @GetMapping
+    fun findAll(@AuthenticationPrincipal userId: UUID): List<TaskDTO> {
+        log.info("Running GET /tasks method.")
+
+        return service.findAll(userId)
+            .also { log.info("All boards fetched.") }
+    }
+
     @GetMapping("/{id}")
     fun find(@PathVariable("id") taskId: UUID): TaskDTO {
         log.info("Running GET /tasks/{id} method.")
