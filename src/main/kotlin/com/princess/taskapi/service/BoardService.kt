@@ -22,8 +22,12 @@ class BoardService(private val boardRepository: BoardRepository, private val use
             ResourceNotFoundException("User does not exist.")
         }
 
+        log.debug("Fetching member details..")
+        val members = details.members.map { userRepository.findById(it.id!!).orElseThrow { ResourceNotFoundException("One member does not exist.") } }
+
         log.debug("Saving board..")
-        return details.createBoardEntity(user).let { boardRepository.save(it) }.toBoardResponse()
+        return details.createBoardEntity(user, members)
+            .let { boardRepository.save(it) }.toBoardResponse()
     }
 
     fun findAll(userId: UUID): List<BoardDTO> {

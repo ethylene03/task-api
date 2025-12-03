@@ -18,10 +18,10 @@ class BoardController(private val service: BoardService) {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun create(@RequestBody details: BoardDTO): BoardDTO {
+    fun create(@RequestBody details: BoardDTO, @AuthenticationPrincipal userId: UUID): BoardDTO {
         log.info("Running POST /boards method.")
 
-        return service.create(details, UUID.randomUUID())
+        return service.create(details, userId)
             .also { log.info("Board created.") }
     }
 
