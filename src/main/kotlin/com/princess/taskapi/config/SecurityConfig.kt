@@ -23,6 +23,7 @@ class SecurityConfig(private val jwt: JWTConfig) {
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(
                     "/auth/**",
+                    "/ws/**",
                     "/"
                 ).permitAll()
 
