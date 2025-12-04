@@ -11,7 +11,3 @@ data class TaskDTO(
     val comments: MutableList<CommentDTO> = mutableListOf(),
     val board: UUID? = null
 )
-
-data class AssigneeIdDTO(
-    val assigneeId: UUID
-)
