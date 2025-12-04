@@ -1,6 +1,7 @@
 package com.princess.taskapi.service
 
 import com.princess.taskapi.dto.BoardDTO
+import com.princess.taskapi.dto.BroadcastDTO
 import com.princess.taskapi.dto.UserDTO
 import com.princess.taskapi.helpers.ResourceNotFoundException
 import com.princess.taskapi.helpers.createBoardEntity
@@ -8,11 +9,16 @@ import com.princess.taskapi.helpers.toBoardResponse
 import com.princess.taskapi.repository.BoardRepository
 import com.princess.taskapi.repository.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class BoardService(private val boardRepository: BoardRepository, private val userRepository: UserRepository) {
+class BoardService(
+    private val boardRepository: BoardRepository,
+    private val userRepository: UserRepository,
+    private val messagingTemplate: SimpMessagingTemplate
+) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun create(details: BoardDTO, userId: UUID): BoardDTO {
@@ -28,8 +34,18 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }
 
         log.debug("Saving board..")
-        return details.createBoardEntity(user, members)
+        val savedBoard = details.createBoardEntity(user, members)
             .let { boardRepository.save(it) }.toBoardResponse()
+
+        log.debug("Broadcasting new board..")
+        savedBoard.members.forEach { member ->
+            messagingTemplate.convertAndSend(
+                "/topic/users/${member.id}",
+                BroadcastDTO("create:board", savedBoard)
+            )
+        }
+
+        return savedBoard
     }
 
     fun findAll(userId: UUID): List<BoardDTO> {
@@ -65,10 +81,18 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }
 
         log.debug("Saving board..")
-        return board.apply {
+        val savedBoard = board.apply {
             name = details.name
             description = details.description
         }.let { boardRepository.save(it) }.toBoardResponse()
+
+        log.debug("Broadcasting changes..")
+        messagingTemplate.convertAndSend(
+            "/topic/boards/${savedBoard.id}",
+            BroadcastDTO("update:board", savedBoard)
+        )
+
+        return savedBoard
     }
 
     fun invite(boardId: UUID, invitedMembers: List<UserDTO>, userId: UUID): BoardDTO {
@@ -99,9 +123,19 @@ class BoardService(private val boardRepository: BoardRepository, private val use
         }.toMutableList()
 
         log.debug("Saving members..")
-        return board.apply {
+        val savedBoard = board.apply {
             this.members.addAll(members)
         }.let { boardRepository.save(it) }.toBoardResponse()
+
+        log.debug("Broadcasting invites..")
+        members.forEach { member ->
+            messagingTemplate.convertAndSend(
+                "/topic/users/${member.id}",
+                BroadcastDTO("invite:board", savedBoard)
+            )
+        }
+
+        return savedBoard
     }
 
     fun delete(boardId: UUID, userId: UUID) {
@@ -119,5 +153,11 @@ class BoardService(private val boardRepository: BoardRepository, private val use
 
         log.debug("Deleting board..")
         boardRepository.deleteById(boardId)
+
+        log.debug("Broadcasting deletion..")
+        messagingTemplate.convertAndSend(
+            "/topic/boards/${boardId}",
+            BroadcastDTO("delete:board", boardId)
+        )
     }
 }

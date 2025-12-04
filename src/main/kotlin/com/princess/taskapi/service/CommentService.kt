@@ -1,5 +1,6 @@
 package com.princess.taskapi.service
 
+import com.princess.taskapi.dto.BroadcastDTO
 import com.princess.taskapi.dto.CommentDTO
 import com.princess.taskapi.helpers.ResourceNotFoundException
 import com.princess.taskapi.helpers.createCommentEntity
@@ -8,6 +9,7 @@ import com.princess.taskapi.repository.CommentRepository
 import com.princess.taskapi.repository.TaskRepository
 import com.princess.taskapi.repository.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -15,7 +17,8 @@ import java.util.*
 class CommentService(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository,
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -38,8 +41,16 @@ class CommentService(
         }
 
         log.debug("Saving comment..")
-        return details.createCommentEntity(user, task)
+        val savedComment = details.createCommentEntity(user, task)
             .let { commentRepository.save(it) }
             .toCommentResponse()
+
+        log.debug("Broadcasting comment..")
+        messagingTemplate.convertAndSend(
+            "/topic/tasks/${savedComment.task}",
+            BroadcastDTO("create:comment", savedComment)
+        )
+
+        return savedComment
     }
 }

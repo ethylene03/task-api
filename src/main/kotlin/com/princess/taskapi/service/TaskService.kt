@@ -1,5 +1,6 @@
 package com.princess.taskapi.service
 
+import com.princess.taskapi.dto.BroadcastDTO
 import com.princess.taskapi.dto.TaskDTO
 import com.princess.taskapi.helpers.ResourceNotFoundException
 import com.princess.taskapi.helpers.createTaskEntity
@@ -8,6 +9,7 @@ import com.princess.taskapi.repository.BoardRepository
 import com.princess.taskapi.repository.TaskRepository
 import com.princess.taskapi.repository.UserRepository
 import org.slf4j.LoggerFactory
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -15,7 +17,8 @@ import java.util.*
 class TaskService(
     private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
-    private val boardRepository: BoardRepository
+    private val boardRepository: BoardRepository,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -55,9 +58,17 @@ class TaskService(
         }
 
         log.debug("Saving task..")
-        return details.createTaskEntity(assignee, board)
+        val savedTask = details.createTaskEntity(assignee, board)
             .let { taskRepository.save(it) }
             .toTaskResponse()
+
+        log.debug("Broadcasting task..")
+        messagingTemplate.convertAndSend(
+            "/topic/boards/${savedTask.board}",
+            BroadcastDTO("create:task", savedTask)
+        )
+
+        return savedTask
     }
 
     fun findAll(userId: UUID): List<TaskDTO> {
@@ -105,12 +116,27 @@ class TaskService(
         }
 
         log.debug("Updating task..")
-        return task.apply {
+        val savedTask = task.apply {
             status = details.status
             name = details.name
             description = details.description
             this.assignee = assignee ?: this.assignee
         }.let { taskRepository.save(it) }.toTaskResponse()
+
+        log.debug("Broadcasting changes..")
+        messagingTemplate.convertAndSend(
+            "/topic/tasks/${savedTask.id}",
+            BroadcastDTO("update:task", savedTask)
+        )
+
+        if(assignee != null) {
+            messagingTemplate.convertAndSend(
+                "/topic/users/${assignee.id}",
+                BroadcastDTO("update:task", savedTask)
+            )
+        }
+
+        return savedTask
     }
 
     fun delete(taskId: UUID, userId: UUID) {
@@ -134,5 +160,11 @@ class TaskService(
 
         log.debug("Deleting task..")
         taskRepository.deleteById(taskId)
+
+        log.debug("Broadcasting deletion..")
+        messagingTemplate.convertAndSend(
+            "/topic/boards/${taskId}",
+            BroadcastDTO("delete:task", taskId)
+        )
     }
 }
