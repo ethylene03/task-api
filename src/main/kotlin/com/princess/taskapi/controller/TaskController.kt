@@ -1,6 +1,5 @@
 package com.princess.taskapi.controller
 
-import com.princess.taskapi.dto.AssigneeIdDTO
 import com.princess.taskapi.dto.TaskDTO
 import com.princess.taskapi.service.TaskService
 import org.slf4j.LoggerFactory
